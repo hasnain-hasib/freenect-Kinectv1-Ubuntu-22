@@ -1,56 +1,116 @@
- basic commands to install libfreenect and run the Kinect v1 on Ubuntu:
+# Kinect Installation Guide for Ubuntu 22
 
-### Installation:
+This guide provides step-by-step instructions to set up Kinect on Ubuntu 22.
 
-1. **Install required dependencies**:
+## Prerequisites
 
-   ```bash
-   sudo apt-get update
-   sudo apt-get install git build-essential cmake libusb-1.0-0-dev freeglut3-dev
-   ```
+Make sure your system is up-to-date:
 
-2. **Clone the libfreenect repository**:
+```bash
+sudo apt-get update &&
+sudo apt-get upgrade -y
+```
 
-   ```bash
-   git clone https://github.com/OpenKinect/libfreenect.git
-   ```
+## Installation Steps
 
-3. **Build and install libfreenect**:
+1. Install necessary packages:
 
-   ```bash
-   cd libfreenect
-   mkdir build
-   cd build
-   cmake ..
-   make
-   sudo make install
-   ```
+```bash
+sudo apt-get install -y git-core cmake freeglut3-dev pkg-config build-essential libxmu-dev libxi-dev libusb-1.0-0-dev cython3 python3-dev python3-numpy
+```
 
-### Running Kinect:
+2. Clone the libfreenect repository:
 
-4. **Create a udev rule to grant permissions**:
+```bash
+git clone git://github.com/OpenKinect/libfreenect.git
+```
 
-   Create a file `/etc/udev/rules.d/51-kinect.rules` with the following content:
+3. Navigate to the libfreenect directory:
 
-   ```
-   SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="02ae", MODE="0666"
-   ```
+```bash
+cd libfreenect
+```
 
-   This rule will allow all users to access the Kinect device.
+4. Create a build directory:
 
-5. **Reload udev rules**:
+```bash
+mkdir build && cd build
+```
 
-   ```bash
-   sudo udevadm control --reload-rules && sudo udevadm trigger
-   ```
+5. Run cmake:
 
-6. **Plug in the Kinect and run `freenect-glview`**:
+```bash
+cmake -L ..
+```
 
-   ```bash
-   freenect-glview
-   ```
+6. Compile the code:
 
-   This command should open a window displaying the Kinect's depth and RGB data.
+```bash
+make
+```
 
- including the tilt angle, as needed for your specific application. Please note that running `freenect-glview` might require elevated privileges (`sudo`) if you haven't configured the udev rules and group memberships correctly.
+7. Install the compiled code:
 
+```bash
+sudo make install
+```
+
+8. Configure library paths:
+
+```bash
+sudo ldconfig /usr/local/lib64/
+```
+
+9. Add the current user to the `video` and `plugdev` groups:
+
+```bash
+sudo adduser $USER video
+sudo adduser $USER plugdev
+```
+
+10. Configure udev rules for Kinect:
+
+```bash
+echo -e '# ATTR{product}=="Xbox NUI Motor"\nSUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="02b0", MODE="0666"\n# ATTR{product}=="Xbox NUI Audio"\nSUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="02ad", MODE="0666"\n# ATTR{product}=="Xbox NUI Camera"\nSUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="02ae", MODE="0666"\n# ATTR{product}=="Xbox NUI Motor"\nSUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="02c2", MODE="0666"\n# ATTR{product}=="Xbox NUI Motor"\nSUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="02be", MODE="0666"\n# ATTR{product}=="Xbox NUI Motor"\nSUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="02bf", MODE="0666"' | sudo tee /etc/udev/rules.d/51-kinect.rules
+```
+
+11. Navigate to the Python wrappers directory:
+
+```bash
+cd ~/libfreenect/wrappers/python
+```
+
+12. Clean and install the Python bindings:
+
+```bash
+sudo python3 setup.py clean
+sudo python3 setup.py install
+```
+
+## Additional Steps (if the above method doesn't work)
+
+1. Install Python 3 pip:
+
+```bash
+sudo apt install python3-pip
+```
+
+2. Edit the setup.py file:
+
+```bash
+nano ~/libfreenect/wrappers/python/setup.py
+```
+
+Find the lines containing references to `Cython.Compiler.Main.version` and `Cython.Compiler.Main.Version.version`. Replace them with `Cython.__version__`.
+
+3. Clean and reinstall the Python bindings:
+
+```bash
+cd ~/libfreenect/wrappers/python
+sudo python3 setup.py clean
+sudo python3 setup.py install
+```
+
+---
+
+Feel free to modify the README according to your preferences or add any additional information you find relevant.
