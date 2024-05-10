@@ -112,5 +112,3 @@ sudo python3 setup.py install
 ```
 
 ---
-
-Feel free to modify the README according to your preferences or add any additional information you find relevant.
